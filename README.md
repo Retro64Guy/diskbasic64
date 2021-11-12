@@ -1,8 +1,8 @@
 # diskbasic64
-A C64 Basic Extension inspired by OldSkoolCoder (John) but more Disk related Commands
-and utility functions.
+A C64 Basic Extension inspired by OldSkoolCoder (John)
+but more Disk related Commands and utility functions.
 
-This is my first attempt to publish onw of my projects on git.
+This is my first attempt to publish one of my projects on git.
 It's not my first C64 assembler project at all, but the first thing I published on git.
 
 I'm a complete noob in using GIT. So I've already produced some commit and push errors on git.
