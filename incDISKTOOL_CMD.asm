@@ -1,27 +1,14 @@
 ;*******************************************************************************
 ;* Library of Disktool commands                                                *
 ;*******************************************************************************
-;* CATALOG, DRIVE, DINIT, DLOAD, DSAVE, DVALIDATE, SCRATCH, FCOPY, BAM         *
+;* CATALOG, DRIVE, DINIT, DLOAD, DSAVE, DVALIDATE, SCRATCH, FCOPY, BAM, HEADER *
 ;*******************************************************************************
-
-; Jeder Track besteht aus 4 Bytes XX SS SS SS (15 ff ff 1f)
-;                00000000  11111100     21111
-;                76543210  54321098  xxx09876
-; 21 255 255 31 %11111111 %11111111 %00011111
-; Bitmaske Track XX=Anzahl Freie Sektoren SS Sektorenmaske
-MAXSECS
-        byte 21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21
-        byte 19,19,19,19,19,19,19
-        byte 18,18,18,18,18,18
-        byte 17,17,17,17,17
-
 DISKBLOCKBUFFER = $7F00
 
 DISK_CMD_CHANNEL
         byte $0F
 DISK_DRIVE
         byte $08
-
 DISK_TEXT
         text "current drive #"
         brk
@@ -182,59 +169,102 @@ SETCMDCHANNEL
 ;*******************************************************************************
 COM_DISKERR
         jsr bas_CHRGOT$
-        beq READDISKERROR
+        beq GETERROR            ; READDISKERROR
         cmp #"u"
         beq @NEWDRVNUM
         jmp SYNTAX_ERROR
 @NEWDRVNUM
         jsr SETNEWDRIVE
-READDISKERROR
-        jsr SETCMDCHANNEL
-        lda #$00                ; kein Filename
-        jsr krljmp_SETNAM$      ; 
-        jsr krljmp_OPEN$        ; Open 15,DISK_DRIVE,15
-
-;Entry for calls from other Diskcommands
-GETDISKERR
-        jsr krljmp_CLRCHN$
-        ldx DISK_CMD_CHANNEL    ; Eingabe
-        jsr krljmp_CHKIN$       ; vom Fehlerkanal
-        ldx #$00
-@READLOOP
-        jsr krljmp_CHRIN$       ; Zeichen von Floppy
-        ldy COMM_DSSTRFLAG
-        cpy #$01
-        bne @PRINT_ERR
-        sta DISKERRBUF,x        ; ind DISKERRBUF,x für DS$
-        inx
-        bne @SKIPPRINT
-@PRINT_ERR
-        jsr krljmp_CHROUT$      ; und ausgeben
-@SKIPPRINT
-        bit ZP_STATE            ; Status testen
-        bvc @READLOOP           ; ok, sonst springe zum loop
-        stx COMM_DSSTRLEN
-        jsr krljmp_CLRCHN$      ; CMD Modus beenden
-        lda DISK_CMD_CHANNEL    ; Kanal
-        jsr krljmp_CLOSE$       ; schliessen
-        rts
-DISKERR_DSVAR
-        jsr READDISKERROR
-        ldx COMM_DSSTRLEN
+GETERROR
+        jsr DISKERR_DSVAR
+        ldx STRLEN
+        ldy #$00
+@PRINTERR
+        lda (STRADR),y
+        jsr krljmp_CHROUT$
+        iny
         dex
-        lda DISKERRBUF,x
-        cmp #CHR_Return
-        bne @NORETURN
-        lda #$00
-        sta DISKERRBUF,x
-@NORETURN
-        inx
-        lda #$00
-        sta DISKERRBUF,x
-        inx
-        sta DISKERRBUF,x
-        stx COMM_DSSTRLEN       ; Globale Variable für DS$
+        bne @PRINTERR
+        lda #$0d
+        jsr krljmp_CHROUT$
         rts
+
+;READDISKERROR
+;        jsr SETCMDCHANNEL
+;        lda #$00                ; kein Filename
+;        jsr krljmp_SETNAM$      ; 
+;        jsr krljmp_OPEN$        ; Open 15,DISK_DRIVE,15
+;;Entry for calls from other Diskcommands
+;GETDISKERR
+;        jsr krljmp_CLRCHN$
+;        ldx DISK_CMD_CHANNEL    ; Eingabe
+;        jsr krljmp_CHKIN$       ; vom Fehlerkanal
+;        ldx #$00
+;@READLOOP
+;        jsr krljmp_CHRIN$       ; Zeichen von Floppy
+;        ldy COMM_DSSTRFLAG
+;        cpy #$01
+;        bne @PRINT_ERR
+;        sta DISKERRBUF,x        ; in DISKERRBUF,x für DS$
+;        inx
+;        bne @SKIPPRINT
+;@PRINT_ERR
+;        jsr krljmp_CHROUT$      ; und ausgeben
+;@SKIPPRINT
+;        bit ZP_STATE            ; Status testen
+;        bvc @READLOOP           ; ok, sonst springe zum loop
+;        stx COMM_DSSTRLEN
+;        jsr krljmp_CLRCHN$      ; CMD Modus beenden
+;        lda DISK_CMD_CHANNEL    ; Kanal
+;        jsr krljmp_CLOSE$       ; schliessen
+
+; Diskfehler Kanal lesen 
+DISKERR_DSVAR                   ;GETDSSTR        
+        lda #40                 ;40 Zeichen Platz
+        jsr bas_GETPLACE$       ;im Speicher reservieren
+        lda DISK_DRIVE
+        jsr krljmp_TALK$
+        lda #$6F
+        jsr krljmp_TKSA$
+        ldy #0
+@DSVARLOOP
+        jsr krljmp_ACPTR$
+        cmp #$0d
+        beq @DSVARLEN
+        sta (STRADR),Y
+        iny
+        cpy #40
+        bne @DSVARLOOP
+@DSVARLEN
+        sty STRLEN
+        jsr krljmp_UNTALK$
+        rts
+
+; VARIABLEN DS$ und DS
+DSSTR   
+        jsr DISKERR_DSVAR
+        jmp bas_STRSTACK$               ; $B4CA
+DSFAC   
+        jsr DISKERR_DSVAR
+        ldy #0
+        lda (STRADR),Y
+        and #15
+        asl
+        sta INTADR
+        asl
+        asl
+        adc INTADR
+        sta INTADR
+        iny
+        lda (STRADR),Y
+        and #15
+        clc
+        adc INTADR
+        tay
+        lda #0
+        jmp $B395
+        rts
+
 ;*******************************************************************************
 ;* DRIVE Command - Set Deviceno. of Default Diskdrive to use                   *
 ;*******************************************************************************
@@ -416,8 +446,23 @@ DISKCMD
         bne @NOWAIT
         jsr WAITFORDISKRESET
 @NOWAIT
-        jmp GETDISKERR
+        jsr WAITFORCMD
+        jmp GETERROR
 
+;*******************************************************************************
+;* This routine is needed for a Diskcommand                                    *
+;*******************************************************************************
+WAITFORCMD
+        jsr krljmp_CLRCHN$
+        ldy #$80
+@YLOOP
+        ldx #$80
+@XLOOP
+        dex
+        bne @XLOOP
+        dey
+        bne @YLOOP
+        rts
 ;*******************************************************************************
 ;* This routine is needed for a Disk Reset to wait until Disk Reset finished   *
 ;*******************************************************************************
@@ -715,8 +760,8 @@ COM_DLOAD
         cmp #$02                ; $08 = program mode, $02 = directmode
         bne @INPROGRAMMODE      ; if not $02 then its program mode
 ; if load in directmode print the endaddress of the loaded file
-        stx $2d                 ; X = LoByte of Load Endaddress
-        sty $2e                 ; Y = HiByte of Load Endaddress
+;        stx $2d                 ; X = LoByte of Load Endaddress
+;        sty $2e                 ; Y = HiByte of Load Endaddress
         lda #$76                ; Auf READY
         ldy #$a3                ; zeigen
         jsr bas_PrintString$    ; und ausgeben
@@ -726,19 +771,19 @@ COM_DLOAD
         lda LOADSECADR
         beq @BASICLOAD
 TODO APROVE DLOAD STARTADRESS - NOT CORRECT AFTER LOADING A BINARY
-        ldx $b2
-        lda $b3
+        ldx $B2
+        lda $B3
         jmp @ADROUT
 @BASICLOAD
-        ldx $2b
-        lda $2c
+        ldx $C3
+        lda $C4
 @ADROUT        
         jsr bas_DecimalPrint$
         lda #<PROGADR2
         ldy #>PROGADR2
         jsr bas_PrintString$    ; und ausgeben
-        ldx $2d
-        lda $2e
+        ldx $AE
+        lda $AF
         jsr bas_DecimalPrint$
         lda #<PROGSIZE
         ldy #>PROGSIZE
@@ -756,15 +801,15 @@ TODO APROVE DLOAD STARTADRESS - NOT CORRECT AFTER LOADING A BINARY
 
 @CALCBYTES
         php
-        lda $2d                 ; reload current
-        ldy $2e                 ; basic end address
-        sec
+        lda $AE                 ; reload current
+        ldy $AF                 ; basic end address
         ldx LOADSECADR
         beq @BASLOW
-        sbc $b2
+        sec
+        sbc $B2
         byte $2c
 @BASLOW
-        sbc $2b
+        sbc $C3
         bcs @SkipHigh
         dey
 @SkipHigh
@@ -973,6 +1018,11 @@ COM_FCOPY
 ;*******************************************************************************
 ;* Output: Errormessage of Diskdrive if occured                                *
 ;*******************************************************************************
+; Jeder Track besteht aus 4 Bytes XX SS SS SS (15 ff ff 1f)
+;                00000000  11111100     21111
+;                76543210  54321098  xxx09876
+; 21 255 255 31 %11111111 %11111111 %00011111
+; Bitmaske Track XX=Anzahl Freie Sektoren SS Sektorenmaske
 COM_SHOWBAM
 ; SET PARAMS FOR READING TRACK 18,0
         lda #18
@@ -1370,7 +1420,7 @@ COM_LABEL
         lda #$02
         jsr krljmp_CLOSE$
 LABEL_DISKERR
-        jmp GETDISKERR
+        jmp GETERROR
 
 ;----- DISK BLOCK COMMANDS -----
 CLOSEALL_ON_DISK_ERR

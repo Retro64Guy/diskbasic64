@@ -317,7 +317,19 @@ ExtCommands
         text "showbaM"          ; $E0
         text "headeR"           ; $E1
         text "labeL"            ; $E2
-        brk
+;AB HIER FUNKTIONSTOKENS DIE IN EVALMY AUSGEWERTET WERDEN - ANPASSEN FÜR EVALMY!
+        text "hex",$A4          ; $E3
+        text "bin",$A4          ; $E4
+        ;text "instr",$A4        ; $E5
+        ;text "string",$A4       ; $E6
+        brk                     ; DIESES NULL BYTE MUSS BLEIBEN DAMIT
+                                ; DER TOKENIZER NICHT INS NIRWANA VERSCHWINDET!
+
+FIRSTCMDTOKEN = $CC             ; Erstes Token immer gleich
+LASTCMDTOKEN  = $E2 + 1         ; Letzer Basic BEFEHL! + 1 = AB $E3 =   
+                                ; FUNKTIONSTOKENS
+CODEINSTR     = $E5
+CODEDUP       = $E6
 
 Command_Addr
         word COM_HELP - 1
@@ -343,5 +355,11 @@ Command_Addr
         word COM_FCOPY - 1
         word COM_SHOWBAM - 1
         word COM_FORMATDISK - 1
-        word COM_LABEL - 1
-        brk
+        word COM_LABEL - 1      ; $E2 Letztes BASIC Kommando
+
+; Tabelle auf Funktionen die in EVALMY ausgewertet werden
+FUNKTAB                         ; AB HIER FUNKTIONEN KEINE BASICBEFEHLE!!  
+        word HEX                ; $E3
+        word BIN                ; $E4
+        ;word INSTR             ; $E5
+        ;word DUP               ; $E6
