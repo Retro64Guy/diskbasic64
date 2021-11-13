@@ -1,0 +1,14 @@
+.label TABTBL=$2097
+.label SETWAITTIMER=$2059
+.label PAUSE=$2062
+.label TIMED_WAITFORKEY=$2046
+.label GETNo2=$203b
+.label LineNumberLo=$14
+.label GNFCL_Return=$200d
+.label TABPOS=$2096
+.label WAITTIME=$205c
+.label SCRPRINTTAB=$2063
+.label GetNumberFromCommandLine=$2000
+.label GETRETKEY=$2031
+.label LineNumberHi=$15
+.label ABIE=$200e

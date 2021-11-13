@@ -1,14 +1,17 @@
-;*******************************************************************************
-;* DE-Tokenizer (Lister) Routine                                               *
-;*******************************************************************************
+//*******************************************************************************
+//* DE-Tokenizer (Lister) Routine                                               *
+//*******************************************************************************
+#define BASICLISTENER
+#importonce
 
-VEC_LISTER
+
+VEC_LISTER:
         bmi LIST_SEARCHTOKEN
 
-LIST_BASICPRINTCHAR
+LIST_BASICPRINTCHAR:
         jmp $a6f3
 
-LIST_SEARCHTOKEN
+LIST_SEARCHTOKEN:
         cmp #$ff
         beq LIST_BASICPRINTCHAR
         bit $0f
@@ -23,33 +26,33 @@ LIST_SEARCHTOKEN
         asl
         beq LIST_FNDTOKEN
 
-LIST_UPDATEBUFPTR
+LIST_UPDATEBUFPTR:
         dex
         bpl LIST_UPDCMDLISTIDX
 
-LIST_UPDATECMDPTR
+LIST_UPDATECMDPTR:
         inc $64
         bne LIST_SKIPPTRHIBYTE
         inc $65
 
-LIST_SKIPPTRHIBYTE
+LIST_SKIPPTRHIBYTE:
         lda ($64),y
         bpl LIST_UPDATECMDPTR
         bmi LIST_UPDATEBUFPTR
 
-LIST_UPDCMDLISTIDX
+LIST_UPDCMDLISTIDX:
         iny
 
-LIST_FNDTOKEN
+LIST_FNDTOKEN:
         lda ($64),y
         bmi LIST_RESTORELISTPTR
         jsr $ab47
         bne LIST_UPDCMDLISTIDX
 
-LIST_RESTORELISTPTR
+LIST_RESTORELISTPTR:
         jmp $a6ef
 
-#region Original Lister Routine from Dale
+/* #region Original Lister Routine from Dale
         php
         cmp #255
         beq LEXIT
@@ -89,3 +92,4 @@ LEXIT
         jmp bas_UNCRUNCH$ + 3
 
 #endregion
+ */

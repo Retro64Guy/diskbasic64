@@ -1,11 +1,15 @@
-;*******************************************************************************
-;* ERASE Command                                                               *
-;* This BASIC funtion Erases lines and shapes                                  *
-;*******************************************************************************
-;* Syntax ERASE or E and shifted R                                             *
-;*******************************************************************************
+//*******************************************************************************
+//* ERASE Command                                                               *
+//* This BASIC funtion Erases lines and shapes                                  *
+//*******************************************************************************
+//* Syntax ERASE or E and shifted R                                             *
+//*******************************************************************************
+#define ERASECMD
+#importonce
 
-COM_ERASE
+#import "incGLOBALVARS.asm"
+
+COM_ERASE:
         lda COMM_ERASE_ENABLED
         eor #$80
         sta COMM_ERASE_ENABLED

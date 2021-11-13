@@ -1,0 +1,10 @@
+.label SETDOT=$20ee
+.label PLACE=$202b
+.label BYTEMASK=$2000
+.label MAXSECS=$2008
+.label DoDotset=$20fc
+.label DOT=$20df
+.label WORK_OUT_COL=$2085
+.label SCREENSTART=$8400
+.label WORK_PLACEOUT=$2048
+.label ERASEDOT=$20f9
