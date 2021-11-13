@@ -4,7 +4,6 @@ bak
 *.dbg
 *.dmp
 *.dup
-.source.txt
 *.sym
-*.prg
 *.vs
+.source.txt

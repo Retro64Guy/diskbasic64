@@ -1,3 +1,0 @@
-.label BYTEMASK=$2000
-.label MAXSECS=$2008
-.label SCREENSTART=$8400
