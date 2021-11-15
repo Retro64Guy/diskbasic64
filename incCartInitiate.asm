@@ -7,7 +7,7 @@
 //*                                                                             *
 //*                                                                             *
 //*******************************************************************************
-#define CARTINITILIZER
+#define CARTINITIALIZER
 #importonce
 
 #import "incGLOBALVARS.asm"

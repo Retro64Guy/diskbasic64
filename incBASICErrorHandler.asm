@@ -21,16 +21,16 @@ VEC_ERRORHANDLER:
         sta ErrorHandlerHi
         jsr COM_SCREEN
         pla                     // Retrieve Back Error Code
-        jmp bas_CustomError$
+        jmp bas_CustomError
 
 !ROMError:
         jsr COM_SCREEN
         pla                     // Retrieve Back Error Code
         tax
         bmi !GOReady
-        jmp bas_ROMError$ + 3   //$E38B
+        jmp bas_ROMError + 3   //$E38B
 !GOReady:
-        jmp bas_ReadyPrompt$
+        jmp bas_ReadyPrompt
 
 ErrorCodeAddr:
         .word MISSING_DISKNAME

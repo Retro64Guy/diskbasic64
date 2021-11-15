@@ -29,7 +29,7 @@ BYEBYE_CHKCMDTOKEN:
         pha
         lda Command_Addr,y
         pha
-        jmp bas_CHRGET$
+        jmp bas_CHRGET
 
 BYEBYE_GOBASICV2CMD:
         jmp $a7f7
